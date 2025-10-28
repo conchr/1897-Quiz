@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Κουίζ: Η Μάχη των Φαρσάλων (1897)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent-color: #e45826;
+            --dark-bg: #162447;
+            --darker-bg: #1a1a2e;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            color: white;
+        }
+        
+        .quiz-container {
+            background: linear-gradient(to bottom right, var(--dark-bg), var(--darker-bg));
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border-radius: 16px;
+            border-left: 6px solid var(--accent-color);
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 80vh;
+            max-height: 95vh;
+        }
+        
+        .quiz-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(to right, var(--accent-color), #f17345);
+        }
+        
+        .accent-text {
+            color: var(--accent-color);
+        }
+        
+        .main-button {
+            transition: all 0.3s;
+            background: linear-gradient(to right, var(--accent-color), #f17345);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+            cursor: pointer;
+            font-size: clamp(0.875rem, 2vw, 1rem);
+        }
+        
+        .main-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .main-button:active {
+            transform: translateY(0);
+        }
+        
+        .question-container {
+            transition: opacity 0.5s ease-in-out;
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--accent-color), #f17345);
+            transition: width 0.5s ease;
+        }
+        
+        .option-button {
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            text-align: left;
+            margin-bottom: 1rem;
+            width: 100%;
+            font-size: 1rem;
+        }
+        
+        .option-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .option-button.correct {
+            background: rgba(46, 204, 113, 0.2);
+            border-color: #2ecc71;
+        }
+        
+        .option-button.incorrect {
+            background: rgba(231, 76, 60, 0.2);
+            border-color: #e74c3c;
+        }
+        
+        .feedback {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-weight: 600;
+            text-align: center;
+            animation: fadeIn 0.5s;
+        }
+        
+        .correct-feedback {
+            background: rgba(46, 204, 113, 0.2);
+            border: 2px solid #2ecc71;
+            color: #2ecc71;
+        }
+        
+        .incorrect-feedback {
+            background: rgba(231, 76, 60, 0.2);
+            border: 2px solid #e74c3c;
+            color: #e74c3c;
+        }
+        
+        .results-container {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-color), #f17345);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            font-size: 2.5rem;
+            font-weight: bold;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @media (max-width: 768px) {
+            .quiz-container {
+                min-height: 85vh;
+                max-height: 90vh;
+            }
+            
+            .question-container {
+                padding: 1rem;
+            }
+            
+            .option-button {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .score-circle {
+                width: 120px;
+                height: 120px;
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <header class="mb-6 border-b pb-4 border-gray-700 px-6 pt-6">
+            <h1 class="text-2xl md:text-3xl font-extrabold text-white text-center">Κουίζ: Η Μάχη των Φαρσάλων (1897)</h1>
+            <div class="flex justify-between items-center mt-4">
+                <div class="text-sm text-gray-400" id="question-counter">Ερώτηση 1 / 12</div>
+                <div class="text-sm text-gray-400">Δήμος Φαρσάλων</div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 8.33%"></div>
+            </div>
+        </header>
+
+        <div id="quiz-content" class="question-container">
+            <!-- Το κουίζ θα εμφανιστεί εδώ -->
+        </div>
+
+        <footer class="mt-4 px-6 pb-6">
+            <div class="flex justify-center">
+                <a href="https://conchr.github.io/Farsala-Center-Page/" class="main-button text-center">
+                    Κεντρική Σελίδα
+                </a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Οι ερωτήσεις και οι απαντήσεις για το κουίζ
+        const quizQuestions = [
+            {
+                question: "Πότε έλαβε χώρα η Μάχη των Φαρσάλων;",
+                options: [
+                    "23 Απριλίου 1897",
+                    "15 Μαρτίου 1897", 
+                    "10 Μαΐου 1897",
+                    "28 Αυγούστου 1897"
+                ],
+                correctAnswer: 0
+            },
+            {
+                question: "Ποιος ήταν ο αρχηγός του ελληνικού στρατού στη μάχη;",
+                options: [
+                    "Διάδοχος Κωνσταντίνος",
+                    "Βασιλιάς Γεώργιος Α'",
+                    "Ελευθέριος Βενιζέλος",
+                    "Ιωάννης Μεταξάς"
+                ],
+                correctAnswer: 0
+            },
+            {
+                question: "Ποιος ήταν ο αρχηγός του οθωμανικού στρατού;",
+                options: [
+                    "Ετέμ Πασάς",
+                    "Μουσταφά Κεμάλ",
+                    "Σουλεϊμάν Πασάς",
+                    "Αμπντούλ Χαμίτ Β'"
+                ],
+                correctAnswer: 0
+            },
+            {
+                question: "Ποιος πόλεμος οδήγησε στη Μάχη των Φαρσάλων;",
+                options: [
+                    "Ελληνοτουρκικός Πόλεμος του 1897",
+                    "Α' Βαλκανικός Πόλεμος",
+                    "Β' Βαλκανικός Πόλεμος",
+                    "Κρητικός Πόλεμος"
+                ],
+                correctAnswer: 0
+            },
+            {
+                question: "Ποιο γεγονός προκάλεσε τον Ελληνοτουρκικό Πόλεμο του 1897;",
+                options: [
+                    "Το Κρητικό Ζήτημα",
+                    "Η προσάρτηση της Θεσσαλίας",
+                    "Η Μικρασιατική Καταστροφή",
+                    "Η Σφαγή της Χίου"
+                ],
+                correctAnswer: 0
+            },
+            {
+                question: "Ποιος ήταν ο αριθμός των ελληνικών στρατιωτών στη μάχη;",
+                options: [
+                    "~22.000",
+                    "~15.000",
+                    "~30.000",
+                    "~50.000"
+                ],
+                correctAnswer: 0
+            },
+            {
+                question: "Ποιος ήταν ο αριθμός των οθωμανικών στρατιωτών στη μάχη;",
+                options: [
+                    "~40.000",
+                    "~25.000",
+                    "~60.000",
+                    "~35.000"
+                ],
+                correctAnswer: 0
+            },
+            {
+                question: "Ποια μονάδα του ελληνικού στρατού αντιστάθηκε ηρωικά στο Δρίσκιοϊ;",
+                options: [
+                    "11ο Ευζωνικό Τάγμα",
+                    "1ο Σύνταγμα Πεζικού",
+                    "Λεγεώνα των Φιλελλήνων",
+                    "3ο Σύνταγμα Ιππικού"
+                ],
+                correctAnswer: 0
+            },
+            {
+                question: "Πού υποχώρησε ο ελληνικός στρατός μετά την ήττα στα Φάρσαλα;",
+                options: [
+                    "Προς Δομοκό",
+                    "Προς Λαμία",
+                    "Προς Λάρισα",
+                    "Προς Βόλο"
+                ],
+                correctAnswer: 0
+            },
+            {
+                question: "Ποια ήταν η έκβαση της μάχης για τον ελληνικό στρατό;",
+                options: [
+                    "Στρατηγική ήττα",
+                    "Αποφασιστική νίκη",
+                    "Ισόπαλη μάχη",
+                    "Μικρή νίκη"
+                ],
+                correctAnswer: 0
+            },
+            {
+                question: "Ποια ήταν η κύρια αιτία της ελληνικής ήττας στη μάχη;",
+                options: [
+                    "Αριθμητική υπεροχή των Οθωμανών και ανωτερότητα στο πυροβολικό",
+                    "Προδοσία από αξιωματικούς",
+                    "Κακές καιρικές συνθήκες",
+                    "Έλλειψη πολιορκητικών μηχανημάτων"
+                ],
+                correctAnswer: 0
+            },
+            {
+                question: "Ποιο ήταν το τελικό αποτέλεσμα του Ελληνοτουρκικού Πολέμου του 1897;",
+                options: [
+                    "Ανακωχή και διεθνής οικονομικός έλεγχος στην Ελλάδα",
+                    "Νίκη της Ελλάδας και επέκταση των συνόρων",
+                    "Συνεχιζόμενος πόλεμος για ακόμα 5 χρόνια",
+                    "Επιστροφή στο status quo"
+                ],
+                correctAnswer: 0
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let questionsAnswered = 0;
+        let shuffledQuestions = [];
+
+        const quizContent = document.getElementById('quiz-content');
+        const questionCounter = document.getElementById('question-counter');
+        const progressFill = document.getElementById('progress-fill');
+
+        /**
+         * Ανακατεύει τις ερωτήσεις και τις επιλογές
+         */
+        function shuffleQuestions() {
+            // Δημιουργούμε ένα αντίγραφο των ερωτήσεων
+            shuffledQuestions = [...quizQuestions];
+            
+            // Ανακατεύουμε την σειρά των ερωτήσεων
+            for (let i = shuffledQuestions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledQuestions[i], shuffledQuestions[j]] = [shuffledQuestions[j], shuffledQuestions[i]];
+            }
+            
+            // Για κάθε ερώτηση, ανακατεύουμε τις επιλογές απάντησης
+            shuffledQuestions.forEach(question => {
+                // Αποθηκεύουμε τη σωστή απάντηση
+                const correctAnswerText = question.options[question.correctAnswer];
+                
+                // Ανακατεύουμε τις επιλογές
+                for (let i = question.options.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [question.options[i], question.options[j]] = [question.options[j], question.options[i]];
+                }
+                
+                // Βρίσκουμε τη νέα θέση της σωστής απάντησης
+                question.correctAnswer = question.options.indexOf(correctAnswerText);
+            });
+        }
+
+        /**
+         * Εμφανίζει την τρέχουσα ερώτηση
+         */
+        function displayQuestion() {
+            const question = shuffledQuestions[currentQuestion];
+            
+            // Ενημερώνουμε τον μετρητή ερωτήσεων
+            questionCounter.textContent = `Ερώτηση ${currentQuestion + 1} / ${shuffledQuestions.length}`;
+            
+            // Ενημερώνουμε τη γραμμή προόδου
+            const progressPercentage = ((currentQuestion + 1) / shuffledQuestions.length) * 100;
+            progressFill.style.width = `${progressPercentage}%`;
+            
+            // Δημιουργούμε το HTML για την ερώτηση
+            let questionHTML = `
+                <h2 class="text-xl md:text-2xl font-bold mb-6 text-center">${question.question}</h2>
+                <div class="options-container">
+            `;
+            
+            // Προσθέτουμε τις επιλογές απάντησης
+            question.options.forEach((option, index) => {
+                questionHTML += `
+                    <button class="option-button" onclick="checkAnswer(${index})">
+                        ${option}
+                    </button>
+                `;
+            });
+            
+            questionHTML += `</div>`;
+            
+            // Εμφανίζουμε την ερώτηση
+            quizContent.innerHTML = questionHTML;
+        }
+
+        /**
+         * Ελέγχει την απάντηση του χρήστη
+         */
+        function checkAnswer(selectedIndex) {
+            const question = shuffledQuestions[currentQuestion];
+            const options = document.querySelectorAll('.option-button');
+            let feedbackHTML = '';
+            
+            // Απενεργοποιούμε όλα τα κουμπιά
+            options.forEach(button => {
+                button.disabled = true;
+            });
+            
+            // Ελέγχουμε αν η απάντηση είναι σωστή
+            if (selectedIndex === question.correctAnswer) {
+                // Σωστή απάντηση
+                options[selectedIndex].classList.add('correct');
+                feedbackHTML = `<div class="feedback correct-feedback">Μπράβο! Σωστή απάντηση!</div>`;
+                score++;
+            } else {
+                // Λάθος απάντηση
+                options[selectedIndex].classList.add('incorrect');
+                options[question.correctAnswer].classList.add('correct');
+                feedbackHTML = `<div class="feedback incorrect-feedback">Λάθος! Η σωστή απάντηση είναι: "${question.options[question.correctAnswer]}"</div>`;
+            }
+            
+            // Εμφανίζουμε την ανατροφοδότηση
+            quizContent.insertAdjacentHTML('beforeend', feedbackHTML);
+            
+            // Αυξάνουμε τον μετρητή απαντημένων ερωτήσεων
+            questionsAnswered++;
+            
+            // Προχωράμε στην επόμενη ερώτηση μετά από 2.5 δευτερόλεπτα
+            setTimeout(() => {
+                currentQuestion++;
+                
+                if (currentQuestion < shuffledQuestions.length) {
+                    displayQuestion();
+                } else {
+                    showResults();
+                }
+            }, 2500);
+        }
+
+        /**
+         * Εμφανίζει τα αποτελέσματα του κουίζ
+         */
+        function showResults() {
+            const percentage = Math.round((score / shuffledQuestions.length) * 100);
+            let message = '';
+            
+            if (percentage >= 90) {
+                message = 'Εξαιρετική επίδοση! Είσαι ειδικός στη Μάχη των Φαρσάλων!';
+            } else if (percentage >= 70) {
+                message = 'Πολύ καλή επίδοση! Γνωρίζεις καλά τα γεγονότα της μάχης.';
+            } else if (percentage >= 50) {
+                message = 'Καλή επίδοση! Υπάρχει ακόμα χώρος για βελτίωση.';
+            } else {
+                message = 'Μπορείς να κάνεις καλύτερα! Διάβασε ξανά την παρουσίαση.';
+            }
+            
+            const resultsHTML = `
+                <div class="results-container">
+                    <h2 class="text-2xl md:text-3xl font-bold mb-6">Αποτελέσματα Κουίζ</h2>
+                    <div class="score-circle">${score}/${shuffledQuestions.length}</div>
+                    <p class="text-xl mb-4">${message}</p>
+                    <p class="mb-6">Απάντησες σωστά σε ${score} από τις ${shuffledQuestions.length} ερωτήσεις (${percentage}%)</p>
+                    <div class="flex flex-col md:flex-row justify-center gap-4">
+                        <button class="main-button" onclick="restartQuiz()">
+                            Δοκίμασε ξανά
+                        </button>
+                        <a href="index.html" class="main-button text-center">
+                            Πίσω στην Παρουσίαση
+                        </a>
+                    </div>
+                </div>
+            `;
+            
+            quizContent.innerHTML = resultsHTML;
+        }
+
+        /**
+         * Επανεκκινεί το κουίζ
+         */
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            questionsAnswered = 0;
+            shuffleQuestions();
+            displayQuestion();
+        }
+
+        // Αρχικοποίηση του κουίζ όταν φορτωθεί η σελίδα
+        document.addEventListener('DOMContentLoaded', () => {
+            shuffleQuestions();
+            displayQuestion();
+        });
+    </script>
+</body>
+</html>
